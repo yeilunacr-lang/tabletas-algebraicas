@@ -13,6 +13,7 @@ let mouseReleaseY = 0;
 
 let btnEliminar;
 let btnRotar;
+let btnLimpiar;
 
 // ===============================
 // SETUP
@@ -24,15 +25,20 @@ function setup() {
   modelos.push(crearPieza(40, 160, 80, 30, 'x', true));  // x*1
   modelos.push(crearPieza(40, 220, 30, 30, '1', true));  // 1*1
 
-  // BOTÓN ELIMINAR
-  btnEliminar = createButton('🗑 Eliminar');
-  btnEliminar.position(20, height - 40);
-  btnEliminar.mousePressed(eliminarFicha);
+  // BOTÓN LIMPIAR TABLERO
+  btnLimpiar = createButton('🧹 Limpiar tablero');
+  btnLimpiar.position(20, height - 120);
+  btnLimpiar.mousePressed(limpiarTablero);
 
   // BOTÓN ROTAR
   btnRotar = createButton('🔄 Rotar');
   btnRotar.position(20, height - 80);
   btnRotar.mousePressed(rotarPiezaSeleccionada);
+
+  // BOTÓN ELIMINAR
+  btnEliminar = createButton('🗑 Eliminar');
+  btnEliminar.position(20, height - 40);
+  btnEliminar.mousePressed(eliminarFicha);
 }
 
 // ===============================
@@ -58,8 +64,6 @@ function crearPieza(x, y, w, h, tipo, modelo = false) {
 }
 
 // ===============================
-// DIBUJO COHERENTE CON GEOMETRÍA
-// ===============================
 function dibujarPieza(p) {
   push();
   translate(p.x, p.y);
@@ -75,7 +79,6 @@ function dibujarPieza(p) {
 
   rect(0, 0, w, h);
 
-  // resaltar selección
   if (p === piezaSeleccionada) {
     noFill();
     stroke(0, 255, 0);
@@ -89,7 +92,6 @@ function dibujarPieza(p) {
 
 // ===============================
 function mousePressed() {
-
   for (let m of modelos) {
     if (sobrePieza(m)) {
       let n = crearPieza(mouseX, mouseY, m.w, m.h, m.tipo);
@@ -152,29 +154,26 @@ function mouseReleased() {
 }
 
 // ===============================
-// BOTÓN ROTAR
-// ===============================
 function rotarPiezaSeleccionada() {
   if (!piezaSeleccionada) return;
-
-  // SOLO rota la ficha amarilla
   if (piezaSeleccionada.tipo === 'x') {
     piezaSeleccionada.rotada = !piezaSeleccionada.rotada;
   }
 }
 
 // ===============================
-// BOTÓN ELIMINAR
-// ===============================
 function eliminarFicha() {
   if (!piezaSeleccionada) return;
-
   piezas = piezas.filter(p => p !== piezaSeleccionada);
   piezaSeleccionada = null;
 }
 
 // ===============================
-// HITBOX CORRECTO
+function limpiarTablero() {
+  piezas = [];
+  piezaSeleccionada = null;
+}
+
 // ===============================
 function sobrePieza(p) {
   let w = p.rotada ? p.h : p.w;
@@ -185,10 +184,7 @@ function sobrePieza(p) {
 }
 
 // ===============================
-// IMANTACIÓN CORRECTA
-// ===============================
 function calcularImantacion(a, b) {
-
   let Aw = a.rotada ? a.h : a.w;
   let Ah = a.rotada ? a.w : a.h;
   let Bw = b.rotada ? b.h : b.w;
@@ -199,28 +195,20 @@ function calcularImantacion(a, b) {
 
   let opciones = [];
 
-  // laterales (misma altura)
   if (A.h === B.h) {
-
-    if (abs(A.x - (B.x + B.w)) < SNAP) {
+    if (abs(A.x - (B.x + B.w)) < SNAP)
       opciones.push({ x: B.x + B.w, y: B.y });
-    }
 
-    if (abs((A.x + A.w) - B.x) < SNAP) {
+    if (abs((A.x + A.w) - B.x) < SNAP)
       opciones.push({ x: B.x - A.w, y: B.y });
-    }
   }
 
-  // verticales (mismo ancho)
   if (A.w === B.w) {
-
-    if (abs(A.y - (B.y + B.h)) < SNAP) {
+    if (abs(A.y - (B.y + B.h)) < SNAP)
       opciones.push({ x: B.x, y: B.y + B.h });
-    }
 
-    if (abs((A.y + A.h) - B.y) < SNAP) {
+    if (abs((A.y + A.h) - B.y) < SNAP)
       opciones.push({ x: B.x, y: B.y - A.h });
-    }
   }
 
   if (opciones.length === 0) return null;
